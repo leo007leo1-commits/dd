@@ -290,7 +290,7 @@ function renderSortSelect(){
 function totalStock(p){ return p.colors.reduce((sum,c)=> sum+c.stock, 0); }
 
 function colorsSummary(colors){
-  return colors.map(c=> c.stock>0 ? `${c.name}(${c.stock})` : `<span style="text-decoration:line-through;opacity:.5;">${c.name}</span>`).join(' · ');
+  return colors.filter(c=> c.stock>0).map(c=> c.name).join(' · ');
 }
 
 function sortList(list){
