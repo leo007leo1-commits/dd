@@ -103,8 +103,11 @@ img{display:block;max-width:100%;}
 .sheet .dphoto .slides{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;}
 .sheet .dphoto .slides::-webkit-scrollbar{display:none;}
-.sheet .dphoto .slide{flex:0 0 100%;scroll-snap-align:start;}
+.sheet .dphoto .slide{flex:0 0 100%;scroll-snap-align:start;position:relative;}
 .sheet .dphoto .slide img{width:100%;height:100%;object-fit:cover;}
+.slidecolorlabel{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(26,26,26,.7);color:#fff;font-size:12px;font-weight:500;
+  padding:4px 12px;border-radius:12px;white-space:nowrap;pointer-events:none;}
 .sheet .dphoto .navbtn{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;
   border-radius:50%;background:rgba(255,255,255,.85);border:none;font-size:16px;color:var(--ink);
   cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;}
@@ -315,7 +318,7 @@ function renderGrid(){
       <div class="photo">
         <span class="badge">SALE</span>
         <span class="pct">${pct(p.price,p.salePrice)}%</span>
-        <img src="${p.imgs[0]}" alt="${p.name}" loading="lazy">
+        <img src="${p.imgs[0].url}" alt="${p.name}" loading="lazy">
         ${p.imgs.length>1?`<span class="photocount"><i>⛶</i>${p.imgs.length}</span>`:''}
       </div>
       <div class="body">
@@ -353,7 +356,11 @@ function openDetail(id){
   const p = PRODUCTS.find(x=> String(x.id) === String(id));
   if(!p) return;
   document.getElementById('sheet').classList.remove('cartsheet');
-  const slidesHTML = p.imgs.map(src=>`<div class="slide"><img src="${src}" alt="${p.name}"></div>`).join('');
+  const slidesHTML = p.imgs.map(img=>`
+    <div class="slide">
+      <img src="${img.url}" alt="${p.name}">
+      ${img.colorLabel ? `<div class="slidecolorlabel">${img.colorLabel.replace(/</g,'&lt;')}</div>` : ''}
+    </div>`).join('');
   const dotsHTML = p.imgs.map((_,i)=>`<span class="dot${i===0?' active':''}" data-i="${i}"></span>`).join('');
   const navHTML = p.imgs.length>1 ? `
     <button class="navbtn prev" aria-label="이전 사진">‹</button>
@@ -511,7 +518,7 @@ function openCart(){
     const group = byBrand[brandKey];
     const linesHTML = group.items.map(it=>`
       <div class="cartline" data-key="${cartKey(it.product.id,it.colorName)}">
-        <img src="${it.product.imgs[0]}" alt="${it.product.name}">
+        <img src="${it.product.imgs[0].url}" alt="${it.product.name}">
         <div class="info">
           <p class="iname">${it.product.name}</p>
           <p class="icolor">${it.colorName}</p>
@@ -678,7 +685,11 @@ function parseColors(str){
 }
 /* 사진 여러장은 "url1|url2|url3" 처럼 | 로 구분 */
 function parseImgs(str){
-  return (str||'').split('|').map(s=>s.trim()).filter(Boolean);
+  return (str||'').split('|').map(s=>s.trim()).filter(Boolean).map(part=>{
+    const idx = part.indexOf('::');
+    if(idx === -1) return { url: part, colorLabel: '' };
+    return { url: part.slice(0,idx).trim(), colorLabel: part.slice(idx+2).trim() };
+  });
 }
 
 function rowToProduct(row, idx){
