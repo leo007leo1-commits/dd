@@ -40,8 +40,9 @@ img{display:block;max-width:100%;}
   justify-content:center;padding:0 3px;}
 .cartbadge.zero{display:none;}
 
-.filterrow{position:sticky;top:97px;z-index:18;background:var(--paper);display:flex;align-items:center;
-  gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);}
+.filterrow{position:sticky;top:96px;z-index:18;background:var(--paper);display:flex;align-items:center;
+  gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);overflow-x:auto;flex-wrap:nowrap;}
+.filterrow::-webkit-scrollbar{display:none;}
 .seasonpills{display:flex;gap:6px;overflow-x:auto;flex:1;-webkit-overflow-scrolling:touch;}
 .seasonpills::-webkit-scrollbar{display:none;}
 .seasonpill{flex:0 0 auto;font-size:12.5px;font-weight:500;padding:6px 12px;border-radius:20px;
@@ -192,12 +193,11 @@ img{display:block;max-width:100%;}
   </div>
 </div>
 
-<div class="brandtabs" id="brandTabs">
-  <select class="sortselect" id="sortSelect" style="margin-left:auto;margin-right:12px;flex-shrink:0;"></select>
-</div>
+<div class="brandtabs" id="brandTabs"></div>
 
 <div class="filterrow">
   <div class="seasonpills" id="seasonPills"></div>
+  <select class="sortselect" id="sortSelect"></select>
 </div>
 
 <div class="hero">
