@@ -683,11 +683,20 @@ function parseColors(str){
   });
 }
 /* 사진 여러장은 "url1|url2|url3" 처럼 | 로 구분 */
+/* 구글드라이브 thumbnail URL은 외부 사이트에서 차단됨.
+   lh3.googleusercontent.com/d/FILE_ID 형식으로 변환하면 외부에서도 로드됨. */
+function convertDriveUrl(url){
+  if(!url) return url;
+  const m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m) return 'https://lh3.googleusercontent.com/d/' + m[1];
+  return url;
+}
+
 function parseImgs(str){
   return (str||'').split('|').map(s=>s.trim()).filter(Boolean).map(part=>{
     const idx = part.indexOf('::');
-    if(idx === -1) return { url: part, colorLabel: '' };
-    return { url: part.slice(0,idx).trim(), colorLabel: part.slice(idx+2).trim() };
+    if(idx === -1) return { url: convertDriveUrl(part), colorLabel: '' };
+    return { url: convertDriveUrl(part.slice(0,idx).trim()), colorLabel: part.slice(idx+2).trim() };
   });
 }
 
