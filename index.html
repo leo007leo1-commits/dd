@@ -41,8 +41,7 @@ img{display:block;max-width:100%;}
 .cartbadge.zero{display:none;}
 
 .filterrow{position:sticky;top:96px;z-index:18;background:var(--paper);display:flex;align-items:center;
-  gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);overflow-x:auto;flex-wrap:nowrap;}
-.filterrow::-webkit-scrollbar{display:none;}
+  gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);}
 .seasonpills{display:flex;gap:6px;overflow-x:auto;flex:1;-webkit-overflow-scrolling:touch;}
 .seasonpills::-webkit-scrollbar{display:none;}
 .seasonpill{flex:0 0 auto;font-size:12.5px;font-weight:500;padding:6px 12px;border-radius:20px;
@@ -71,14 +70,14 @@ img{display:block;max-width:100%;}
 .card .photo{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:var(--paper2);flex-shrink:0;}
 .card .photo img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;}
 .card .badge{position:absolute;top:8px;left:8px;background:var(--red);color:#fff;
-  font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:3px;letter-spacing:.02em;}
+  font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:3px;letter-spacing:.02em;z-index:1;}
 .card .pct{position:absolute;top:8px;right:8px;background:var(--ink);color:#fff;
-  font-size:11px;font-weight:900;padding:3px 7px;border-radius:3px;}
+  font-size:11px;font-weight:900;padding:3px 7px;border-radius:3px;z-index:1;}
 .card .photocount{position:absolute;bottom:8px;right:8px;background:rgba(20,18,14,.62);
   color:#fff;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:3px;
-  display:flex;align-items:center;gap:3px;}
+  display:flex;align-items:center;gap:3px;z-index:1;}
 .card .photocount i{font-style:normal;font-size:11px;}
-.card .body{padding:11px 12px 14px;min-height:0;overflow:hidden;}
+.card .body{padding:10px 12px 12px;overflow:hidden;}
 .card .name{font-size:13px;font-weight:500;color:var(--ink);margin:0 0 4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .card .priceline{display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap;margin-bottom:4px;overflow:hidden;}
@@ -220,6 +219,13 @@ img{display:block;max-width:100%;}
    화면이 깜빡이듯 보이는 문제가 있어서 완전히 없앴고, 불러오는 동안은 로딩 문구만 보인다. */
 let PRODUCTS = [];
 let isLoading = true;
+const BRAND_CONTACTS = {
+  dtm:     { phone:'010-8942-3757', kakao:'dtm137',   addr:'남평화 2층 137호' },
+  soup:    { phone:'010-8703-3757', kakao:'soup',     addr:'남평화 2층 141호' },
+  paprika: { phone:'010-3226-3100', kakao:'paprika',  addr:'디오트 3층 i10호' },
+  page:    { phone:'010-4850-3757', kakao:'page',     addr:'누죤 6F-202' },
+};
+
 const BRANDS = [
   { key:'all', label:'전체' },
   { key:'dtm', label:'디티엠' },
@@ -394,6 +400,13 @@ function openDetail(id){
         <div class="specrow"><span class="speclabel">컬러</span><span class="specval"><span class="colorchips">${colorChipsHTML}</span></span></div>
         <div class="specrow"><span class="speclabel">사이즈</span><span class="specval">${p.size}</span></div>
         <div class="specrow"><span class="speclabel">혼용률</span><span class="specval">${p.blend}</span></div>
+        ${(()=>{const c=BRAND_CONTACTS[p.brand];return c?`
+        <div class="specrow" style="margin-top:6px;border-top:1px solid var(--line);padding-top:10px;">
+          <span class="speclabel">연락처</span>
+          <span class="specval" style="line-height:1.8;font-size:13px;">
+            📞 ${c.phone}<br>💬 카카오 ${c.kakao}<br>📍 ${c.addr}
+          </span>
+        </div>`:'';})()}
       </div>
       <div class="desc">${p.desc}</div>
 
@@ -536,6 +549,7 @@ function openCart(){
     return `
       <div class="cartbrandgroup" data-brand="${brandKey}">
         <div class="cartbrandhead"><h3>${group.brandName} (${totalQty}장)</h3></div>
+        ${(()=>{const c=BRAND_CONTACTS[brandKey];return c?`<div style="font-size:12px;color:var(--warm);margin-bottom:8px;line-height:1.8;">📞 ${c.phone} &nbsp;💬 ${c.kakao} &nbsp;📍 ${c.addr}</div>`:'';})()}
         ${linesHTML}
         <button class="orderbtn" data-brand="${brandKey}">${group.brandName} 주문하기</button>
       </div>`;
@@ -684,11 +698,22 @@ function parseColors(str){
   });
 }
 /* 사진 여러장은 "url1|url2|url3" 처럼 | 로 구분 */
+/* 구글드라이브 thumbnail URL은 외부 사이트에서 차단됨.
+   lh3.googleusercontent.com/d/FILE_ID 형식으로 변환하면 외부에서도 로드됨. */
+function convertDriveUrl(url){
+  if(!url) return url;
+  const m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m) return 'https://lh3.googleusercontent.com/d/' + m[1];
+  return url;
+}
+
 function parseImgs(str){
-  return (str||'').split('|').map(s=>s.trim()).filter(Boolean).map(part=>{
+  // 시트에서 URL이 인코딩된 채로 올 수 있어서 먼저 디코딩
+  try{ str = decodeURIComponent(str||''); }catch(e){ str = str||''; }
+  return str.split('|').map(s=>s.trim()).filter(Boolean).map(part=>{
     const idx = part.indexOf('::');
-    if(idx === -1) return { url: part, colorLabel: '' };
-    return { url: part.slice(0,idx).trim(), colorLabel: part.slice(idx+2).trim() };
+    if(idx === -1) return { url: convertDriveUrl(part), colorLabel: '' };
+    return { url: convertDriveUrl(part.slice(0,idx).trim()), colorLabel: part.slice(idx+2).trim() };
   });
 }
 
