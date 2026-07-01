@@ -40,8 +40,8 @@ img{display:block;max-width:100%;}
   justify-content:center;padding:0 3px;}
 .cartbadge.zero{display:none;}
 
-.filterrow{position:sticky;top:96px;z-index:18;background:var(--paper);display:flex;align-items:center;
-  gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);}
+.filterrow{position:sticky;top:97px;z-index:18;background:var(--paper);display:flex;align-items:center;
+  gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);}
 .seasonpills{display:flex;gap:6px;overflow-x:auto;flex:1;-webkit-overflow-scrolling:touch;}
 .seasonpills::-webkit-scrollbar{display:none;}
 .seasonpill{flex:0 0 auto;font-size:12.5px;font-weight:500;padding:6px 12px;border-radius:20px;
@@ -77,12 +77,12 @@ img{display:block;max-width:100%;}
   color:#fff;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:3px;
   display:flex;align-items:center;gap:3px;}
 .card .photocount i{font-style:normal;font-size:11px;}
-.card .body{padding:11px 12px 14px;}
-.card .name{font-size:13px;font-weight:500;color:var(--ink);margin:0 0 6px;
+.card .body{padding:11px 12px 14px;min-height:0;overflow:hidden;}
+.card .name{font-size:13px;font-weight:500;color:var(--ink);margin:0 0 4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.card .priceline{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
-.card .old{font-size:12px;color:var(--warm);text-decoration:line-through;text-decoration-thickness:1px;}
-.card .new{font-size:17px;font-weight:900;color:var(--red);}
+.card .priceline{display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap;margin-bottom:4px;overflow:hidden;}
+.card .old{font-size:12px;color:var(--warm);text-decoration:line-through;text-decoration-thickness:1px;white-space:nowrap;}
+.card .new{font-size:17px;font-weight:900;color:var(--red);white-space:nowrap;}
 .card .colors{font-size:11px;color:var(--warm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 /* ---------- detail modal ---------- */
@@ -192,11 +192,12 @@ img{display:block;max-width:100%;}
   </div>
 </div>
 
-<div class="brandtabs" id="brandTabs"></div>
+<div class="brandtabs" id="brandTabs">
+  <select class="sortselect" id="sortSelect" style="margin-left:auto;margin-right:12px;flex-shrink:0;"></select>
+</div>
 
 <div class="filterrow">
   <div class="seasonpills" id="seasonPills"></div>
-  <select class="sortselect" id="sortSelect"></select>
 </div>
 
 <div class="hero">
@@ -683,22 +684,11 @@ function parseColors(str){
   });
 }
 /* 사진 여러장은 "url1|url2|url3" 처럼 | 로 구분 */
-/* 구글드라이브 thumbnail URL은 외부 사이트에서 차단됨.
-   lh3.googleusercontent.com/d/FILE_ID 형식으로 변환하면 외부에서도 로드됨. */
-function convertDriveUrl(url){
-  if(!url) return url;
-  const m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if(m) return 'https://lh3.googleusercontent.com/d/' + m[1];
-  return url;
-}
-
 function parseImgs(str){
-  // 시트에서 URL이 인코딩된 채로 올 수 있어서 먼저 디코딩
-  try{ str = decodeURIComponent(str||''); }catch(e){ str = str||''; }
-  return str.split('|').map(s=>s.trim()).filter(Boolean).map(part=>{
+  return (str||'').split('|').map(s=>s.trim()).filter(Boolean).map(part=>{
     const idx = part.indexOf('::');
-    if(idx === -1) return { url: convertDriveUrl(part), colorLabel: '' };
-    return { url: convertDriveUrl(part.slice(0,idx).trim()), colorLabel: part.slice(idx+2).trim() };
+    if(idx === -1) return { url: part, colorLabel: '' };
+    return { url: part.slice(0,idx).trim(), colorLabel: part.slice(idx+2).trim() };
   });
 }
 
