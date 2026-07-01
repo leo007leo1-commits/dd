@@ -693,7 +693,9 @@ function convertDriveUrl(url){
 }
 
 function parseImgs(str){
-  return (str||'').split('|').map(s=>s.trim()).filter(Boolean).map(part=>{
+  // 시트에서 URL이 인코딩된 채로 올 수 있어서 먼저 디코딩
+  try{ str = decodeURIComponent(str||''); }catch(e){ str = str||''; }
+  return str.split('|').map(s=>s.trim()).filter(Boolean).map(part=>{
     const idx = part.indexOf('::');
     if(idx === -1) return { url: convertDriveUrl(part), colorLabel: '' };
     return { url: convertDriveUrl(part.slice(0,idx).trim()), colorLabel: part.slice(idx+2).trim() };
