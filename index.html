@@ -295,8 +295,18 @@ function renderSortSelect(){
 
 function totalStock(p){ return p.colors.reduce((sum,c)=> sum+c.stock, 0); }
 
+function stripSize(name){
+  // 맨 끝 사이즈 표기 제거: M, L, S, XL, XXL, 2XL, F, Free 등
+  return name.replace(/\s*(2XL|XXL|XL|XS|M|L|S|F|Free)$/i, '').trim();
+}
 function colorsSummary(colors){
-  return colors.filter(c=> c.stock>0).map(c=> c.name).join(' · ');
+  const seen = new Set();
+  const result = [];
+  colors.filter(c=>c.stock>0).forEach(c=>{
+    const base = stripSize(c.name);
+    if(!seen.has(base)){ seen.add(base); result.push(base); }
+  });
+  return result.join(' · ');
 }
 
 function sortList(list){
