@@ -226,12 +226,28 @@ const BRAND_CONTACTS = {
   page:    { phone:'010-4850-3757', kakao:'page',     addr:'누죤 6F-202' },
 };
 
-const BRANDS = [
-  { key:'all', label:'전체' },
+// 브랜드 코드: 1=dtm, 2=soup, 3=paprika, 4=page
+const BRAND_CODE_MAP = { '1':'dtm', '2':'soup', '3':'paprika', '4':'page' };
+
+// URL ?brands=123 파라미터로 보여줄 브랜드 필터링
+// 없으면 전체 표시
+const _bParam = new URLSearchParams(location.search).get('brands') || '';
+const ALLOWED_BRANDS = _bParam
+  ? [..._bParam].map(c=>BRAND_CODE_MAP[c]).filter(Boolean)
+  : null; // null = 전체
+
+const ALL_BRANDS = [
   { key:'dtm', label:'디티엠' },
   { key:'soup', label:'수프' },
   { key:'paprika', label:'파프리카' },
   { key:'page', label:'페이지' }
+];
+
+const BRANDS = [
+  { key:'all', label:'전체' },
+  ...(ALLOWED_BRANDS
+    ? ALL_BRANDS.filter(b=>ALLOWED_BRANDS.includes(b.key))
+    : ALL_BRANDS)
 ];
 
 const SEASONS = [
@@ -318,7 +334,10 @@ function sortList(list){
 }
 
 function renderGrid(){
-  let list = activeBrand==='all' ? PRODUCTS : PRODUCTS.filter(p=>p.brand===activeBrand);
+  const baseList = ALLOWED_BRANDS
+    ? PRODUCTS.filter(p=>ALLOWED_BRANDS.includes(p.brand))
+    : PRODUCTS;
+  let list = activeBrand==='all' ? baseList : baseList.filter(p=>p.brand===activeBrand);
   if(activeSeason!=='all') list = list.filter(p=>p.season===activeSeason);
   list = sortList(list);
   document.getElementById('itemCount').textContent = list.length;
